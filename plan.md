@@ -80,3 +80,4 @@ wurf.sum()                                # 14
 | Kampfstart | Die KI startet einen Kampf per Tool mit einer Liste aus Figuren (ID/Name) und ihrer Initiative; die Engine führt daraus die Reihenfolge |
 | Aktionsökonomie | Die Engine merkt sich pro Figur und Runde, was genutzt wurde (Bewegung, Aktion, Bonusaktion, Reaktion …) |
 | Kampf-Schnappschuss | Laufender Kampf (Reihenfolge, aktive Figur, genutzte Aktionen) wird als temporärer Schnappschuss gespeichert, nach Kampfende gelöscht; erlaubt Fortsetzen nach Server-Neustart |
+| Szenenende | Die KI beendet eine Szene per Tool, wenn die Erzählung es nahelegt (Ortswechsel, Zeitsprung …); der Spieler kann jederzeit per Befehl beenden. Das Beenden verlangt die Zusammenfassung als Pflichtparameter – beim Spielerbefehl fordert die Engine die KI auf, sie zu liefern |
