@@ -75,4 +75,7 @@ wurf.sum()                                # 14
 | Orte | Baumstruktur (z. B. Kontinent → Stadt → Taverne) mit Beschreibung und Notizen; NPCs und Gegenstände können einem Ort zugeordnet sein; die KI darf neue Orte anlegen |
 | Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), optional Verknüpfungen zu Auftraggeber-NPC, Orten, Belohnungen; die KI darf Quests anlegen und den Status ändern |
 | Quest-Status | Wird manuell bzw. von der KI gesetzt, nicht automatisch aus Teilzielen abgeleitet; die Engine meldet nur Hinweise (z. B. „Alle Teilziele erledigt“) – so bleiben optionale Teilziele und alternative Wege möglich |
-| Verlauf | Kampagne → Szene; gespeichert wird pro Szene nur eine Zusammenfassung (plus Szenen-Protokoll). Einzelne Züge werden nicht dauerhaft gespeichert – die KI hält sie im eigenen Kontext. `POST /sessions/{id}/turns` bleibt als Befehl, ohne Zug-Historie in der DB |
+| Verlauf | Kampagne → Szene; dauerhaft gespeichert werden pro Szene nur Zusammenfassung und Szenen-Protokoll |
+| Züge | Die Engine verwaltet Züge im Speicher, persistiert sie aber nicht |
+| Kampfstart | Die KI startet einen Kampf per Tool mit einer Liste aus Figuren (ID/Name) und ihrer Initiative; die Engine führt daraus die Reihenfolge |
+| Aktionsökonomie | Die Engine merkt sich pro Figur und Runde, was genutzt wurde (Bewegung, Aktion, Bonusaktion, Reaktion …) |
