@@ -35,6 +35,7 @@ Charakter "X"
 | Punkt | Entscheidung | Folge |
 |---|---|---|
 | Persistierung | Postgres | Fähigkeiten, Modi und Folgen als JSONB; lokal z. B. per Docker, Start über ein Skript |
+| Kampagnen-Trennung | Ein Postgres-Schema pro Kampagne | Kein `campaign_id` in den Tabellen; Schema `public` enthält nur den Katalog (Kampagnenliste, Startpakete wie die D&D-Vorlage); pro Anfrage wird `search_path` gesetzt; Migrationen laufen pro Schema; Backup/Löschen per `pg_dump -n` / `DROP SCHEMA` |
 | Schnittstelle | REST-ähnlich, Ressourcen + Befehle | Zustände lesen per GET; Spielhandlungen als Befehle (`POST /sessions/{id}/turns`); die Engine rechnet immer selbst und liefert Ergebnisse (Würfe, Zustände), keine Erzählung |
 | CLI-Anbindung | Von Anfang an über die API | Die Engine läuft als lokaler Server, das CLI ist ein echter Client |
 | KI-Anbindung | Die KI ist ein normaler API-Client | Der Engine ist egal, ob Skript, KI oder Mensch (CLI) aufruft; sie enthält keinen KI-Code. Ein eigener Spielleiter-Client (oder ein MCP-Server über der API) setzt Tool-Aufrufe des Modells in API-Aufrufe um; Erzählung und Streaming liegen dort |
@@ -73,7 +74,7 @@ roll.sum()                                # 14
 | Szenen-Protokoll | Die Szene speichert, wie viele von welcher Kreatur vorkamen und was mit ihnen geschah |
 | TC-Ausgang | Feste Ausgänge (getötet, geflohen, verschont, gezähmt, befördert) plus optionale Notiz; auswertbar (z. B. „12 Wölfe getötet“) |
 | Orte | Baumstruktur (z. B. Kontinent → Stadt → Taverne) mit Beschreibung und Notizen; NPCs und Gegenstände können einem Ort zugeordnet sein; die KI darf neue Orte anlegen |
-| Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), zwingend einen Auftraggeber (beliebige Figur, auch der Spieler selbst) – darüber ist auch die Kampagne bestimmt (kein eigenes `campaign_id`), optional Verknüpfungen zu Orten und Belohnungen; die KI darf Quests anlegen und den Status ändern |
+| Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), zwingend einen Auftraggeber (beliebige Figur, auch der Spieler selbst), optional Verknüpfungen zu Orten und Belohnungen; die KI darf Quests anlegen und den Status ändern |
 | Quest-Status | Wird manuell bzw. von der KI gesetzt, nicht automatisch aus Teilzielen abgeleitet; die Engine meldet nur Hinweise (z. B. „Alle Teilziele erledigt“) – so bleiben optionale Teilziele und alternative Wege möglich |
 | Verlauf | Kampagne → Szene; dauerhaft gespeichert werden pro Szene nur Zusammenfassung und Szenen-Protokoll |
 | Züge | Die Engine verwaltet Züge im Speicher, persistiert sie aber nicht |
@@ -135,14 +136,6 @@ Quelle: `docs/erd.mmd`
 
 ```mermaid
 erDiagram
-    CAMPAIGN ||--o{ STAT_DEFINITION : "defines"
-    CAMPAIGN ||--o{ TEMPLATE : "has"
-    CAMPAIGN ||--o{ DICE_THROW : "has"
-    CAMPAIGN ||--o{ ABILITY : "has"
-    CAMPAIGN ||--o{ ITEM_TEMPLATE : "has"
-    CAMPAIGN ||--o{ CHARACTER : "has"
-    CAMPAIGN ||--o{ LOCATION : "has"
-    CAMPAIGN ||--o{ SCENE : "has"
 
     ABILITY ||--o{ ABILITY_THROW : "named formulas"
     DICE_THROW ||--o{ ABILITY_THROW : "used by"
@@ -181,23 +174,21 @@ erDiagram
     TEMPLATE ||--o{ SCENE_CREATURE_LOG : "creature"
 
     CAMPAIGN {
-        uuid id PK
+        uuid id PK "schema public (catalog)"
         text name
+        text schema_name "one schema per campaign"
     }
     STAT_DEFINITION {
         uuid id PK
-        uuid campaign_id FK
-        text name "e.g. str, luck; unique per campaign"
+        text name "e.g. str, luck; unique"
         text description
     }
     DICE_THROW {
         uuid id PK
-        uuid campaign_id FK
         text formula "e.g. 2d8 + str"
     }
     ABILITY {
         uuid id PK
-        uuid campaign_id FK
         text name
         text description
         jsonb effects "conditions, duration, charges, uses per rest"
@@ -210,7 +201,6 @@ erDiagram
     }
     TEMPLATE {
         uuid id PK
-        uuid campaign_id FK
         text kind "race | class | creature"
         text name
         jsonb stat_modifiers "race/class: {dex: +2}"
@@ -222,9 +212,8 @@ erDiagram
     }
     CHARACTER {
         uuid id PK
-        uuid campaign_id FK
         text kind "player | npc | tc"
-        text name "NPC: unique per campaign"
+        text name "NPC: unique"
         text handle "TC: e.g. wolf_01, unique per encounter"
         uuid creature_id FK "TC only"
         uuid encounter_id FK "TC only"
@@ -253,7 +242,6 @@ erDiagram
     }
     ITEM_TEMPLATE {
         uuid id PK
-        uuid campaign_id FK
         text name
         text description
     }
@@ -284,7 +272,6 @@ erDiagram
     }
     LOCATION {
         uuid id PK
-        uuid campaign_id FK
         uuid parent_id FK
         text name
         text description
@@ -305,7 +292,6 @@ erDiagram
     }
     SCENE {
         uuid id PK
-        uuid campaign_id FK
         int number
         uuid location_id FK
         text summary "required on end"
@@ -326,11 +312,13 @@ erDiagram
     }
 ```
 
+Alle Tabellen außer `campaign` liegen im Schema der jeweiligen Kampagne; `campaign` liegt im Schema `public`.
+
 Annahmen (noch zu bestätigen):
 - Rasse, Klasse und Kreatur teilen eine Tabelle `template` (Spalte `kind`).
 - Werte einer Figur liegen als JSONB (`stats`); die Engine prüft die Namen gegen `stat_definition`.
 - `encounter` ist eigene Tabelle: Rahmen für TC-Kennungen (`unique(encounter_id, handle)`) und Kampf-Schnappschuss. TCs werden mit der Begegnung gelöscht, außer befördert.
-- NPC-Name eindeutig per partiellem Unique-Index (`where kind = 'npc'`).
+- NPC-Name eindeutig per partiellem Unique-Index (`unique(name) where kind = 'npc'`).
 
 ## Glossar (Plan → Code)
 
