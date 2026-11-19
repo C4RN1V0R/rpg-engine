@@ -6,7 +6,7 @@
 |---|---|
 | Zweck | Generische Solo-Engine; Gates ist nur eine mögliche Kampagne |
 | Regeln | Eigenes System, D&D 5e und Gates dienen als Vorlage |
-| Modell | Austauschbar (Ollama, Claude, …) über eine Schnittstelle |
+| Modell | Austauschbar (Ollama, Claude, …); Sache des KI-Clients, nicht der Engine |
 | Oberfläche | Nur CLI, keine Web-Oberfläche geplant |
 | Mechanik durch die Engine | Proben & Kampf · Charakter & Inventar · Welt & NPCs · Quests & Verlauf |
 | Funktionen | Hängen am Träger (Gegenstand mit Modi, Charakter mit Rassen-, Klassen- und erlangten Fähigkeiten) |
@@ -35,9 +35,9 @@ Charakter "X"
 | Punkt | Entscheidung | Folge |
 |---|---|---|
 | Persistierung | Postgres | Fähigkeiten, Modi und Folgen als JSONB; lokal z. B. per Docker, Start über ein Skript |
-| Schnittstelle | REST-ähnlich, Ressourcen + Befehle | Zustände lesen per GET; Spielhandlungen als Befehle (`POST /sessions/{id}/turns`); die Engine rechnet immer selbst; Erzählung per Streaming (z. B. SSE) |
+| Schnittstelle | REST-ähnlich, Ressourcen + Befehle | Zustände lesen per GET; Spielhandlungen als Befehle (`POST /sessions/{id}/turns`); die Engine rechnet immer selbst und liefert Ergebnisse (Würfe, Zustände), keine Erzählung |
 | CLI-Anbindung | Von Anfang an über die API | Die Engine läuft als lokaler Server, das CLI ist ein echter Client |
-| KI-Anbindung | Tool-Aufrufe des Modells, keine REST-Aufrufe | Die Tools binden an dieselbe Service-Schicht wie die API |
+| KI-Anbindung | Die KI ist ein normaler API-Client | Der Engine ist egal, ob Skript, KI oder Mensch (CLI) aufruft; sie enthält keinen KI-Code. Ein eigener Spielleiter-Client (oder ein MCP-Server über der API) setzt Tool-Aufrufe des Modells in API-Aufrufe um; Erzählung und Streaming liegen dort |
 
 ## 3. Würfelsystem
 
@@ -80,4 +80,4 @@ wurf.sum()                                # 14
 | Kampfstart | Die KI startet einen Kampf per Tool mit einer Liste aus Figuren (ID/Name) und ihrer Initiative; die Engine führt daraus die Reihenfolge |
 | Aktionsökonomie | Die Engine merkt sich pro Figur und Runde, was genutzt wurde (Bewegung, Aktion, Bonusaktion, Reaktion …) |
 | Kampf-Schnappschuss | Laufender Kampf (Reihenfolge, aktive Figur, genutzte Aktionen) wird als temporärer Schnappschuss gespeichert, nach Kampfende gelöscht; erlaubt Fortsetzen nach Server-Neustart |
-| Szenenende | Die KI beendet eine Szene per Tool, wenn die Erzählung es nahelegt (Ortswechsel, Zeitsprung …); der Spieler kann jederzeit per Befehl beenden. Das Beenden verlangt die Zusammenfassung als Pflichtparameter – beim Spielerbefehl fordert die Engine die KI auf, sie zu liefern |
+| Szenenende | Die KI beendet eine Szene per API-Aufruf, wenn die Erzählung es nahelegt (Ortswechsel, Zeitsprung …); der Spieler sagt es der KI oder ruft selbst auf. Die Zusammenfassung ist Pflichtparameter: fehlt sie, lehnt die Engine ab (z. B. 422 mit Hinweis); ein leerer String wird akzeptiert, die Antwort enthält aber eine Warnung „Zusammenfassung leer“ |
