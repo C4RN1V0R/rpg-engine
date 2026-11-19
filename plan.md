@@ -63,15 +63,15 @@ roll.sum()                                # 14
 |---|---|
 | Charakterwerte | Frei definierbar pro Kampagne (Name + Zahl); Standardvorlage: STR, DEX, CON, INT, WIS, CHA, prof, Stufe/EP |
 | Wertebindung | Die Engine kennt keine festen Werte; die Kampagne legt ihre Werte fest (z. B. ohne `dex`, mit `luck`). Formeln, Vorlagen und Charaktere sprechen Werte per Name an; Unbekanntes wird beim Anlegen abgelehnt |
-| Rassen & Klassen | Vorlagen in der DB (Name, Fähigkeiten, Wertänderungen als JSONB `{"dex": +2}`), gehören zu einer Kampagne; der Charakter verweist darauf; die KI darf neue anlegen. Die D&D-Vorlage ist ein Startpaket zum Übernehmen und Anpassen |
+| Being & Klasse | `being` (Wesen: Elf, Mensch, Wolf …) mit Wertänderungen bzw. Grundwerten und Fähigkeiten; Spieler/NPC *haben* ein Being als Rasse, ein TC wird *aus* einem Being erzeugt. `character_class` (Krieger …) separat mit Wertänderungen und Fähigkeiten. Beides gehört zur Kampagne, die KI darf neue anlegen; die D&D-Vorlage ist ein Startpaket zum Übernehmen und Anpassen |
 | Gegenstände | Vorlage + Exemplar: Die Vorlage (z. B. „Langschwert“) trägt Modi und Würfe; das Exemplar gehört einem Charakter und hält eigene Daten (Anzahl, Ladungen, Zustand, eigener Name) |
 | Exemplar-Erweiterung | Ein Exemplar kann zusätzliche Fähigkeiten und Modi bekommen (z. B. Verzauberung `+1d6 Feuer`); die Vorlage bleibt unverändert |
 | Aktive Zustände | Eigene Einträge am Charakter: Name, Quelle (Fähigkeit/Gegenstand/Gegner), Dauer (Runden/Rast/dauerhaft), Wirkung (Wertänderungen, Vorteil/Nachteil); die Engine zählt herunter und entfernt Abgelaufenes |
 | Figuren | Ein gemeinsames Modell (Werte, Fähigkeiten, Gegenstände, Zustände) mit Typ: **Spieler**, **NPC** (benannt, taucht mehrfach auf), **TC** (temporärer Charakter, z. B. ein Wolf aus einer Zufallsbegegnung). Ein TC kann zum NPC befördert werden |
-| Kreaturen | Vorlagen (wie Rassen/Klassen), aus denen TCs erzeugt werden |
+| Kreaturen | Kreaturen sind Beings; aus ihnen werden TCs erzeugt |
 | Kennungen | NPC: Name, eindeutig in der ganzen Kampagne. TC: kein Name, nur eine Kennung (z. B. `wolf_01`), eindeutig pro Begegnung |
 | TC-Lebensdauer | Ein TC wird nach der Begegnung gelöscht, außer er wurde zum NPC befördert |
-| Szenen-Protokoll | Die Szene speichert, wie viele von welcher Kreatur vorkamen und was mit ihnen geschah |
+| Szenen-Protokoll | Die Szene speichert, wie viele von welchem Being vorkamen und was mit ihnen geschah |
 | TC-Ausgang | Feste Ausgänge (getötet, geflohen, verschont, gezähmt, befördert) plus optionale Notiz; auswertbar (z. B. „12 Wölfe getötet“) |
 | Orte | Baumstruktur (z. B. Kontinent → Stadt → Taverne) mit Beschreibung und Notizen; NPCs und Gegenstände können einem Ort zugeordnet sein; die KI darf neue Orte anlegen |
 | Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), zwingend einen Auftraggeber (beliebige Figur, auch der Spieler selbst), optional Verknüpfungen zu Orten und Belohnungen; die KI darf Quests anlegen und den Status ändern |
@@ -141,12 +141,14 @@ erDiagram
     DICE_THROW ||--o{ ABILITY_THROW : "used by"
     DICE_THROW ||--o{ MODE_THROW : "used by"
 
-    TEMPLATE ||--o{ TEMPLATE_ABILITY : "grants"
-    ABILITY ||--o{ TEMPLATE_ABILITY : "in"
+    BEING ||--o{ BEING_ABILITY : "grants"
+    ABILITY ||--o{ BEING_ABILITY : "in"
+    CHARACTER_CLASS ||--o{ CLASS_ABILITY : "grants"
+    ABILITY ||--o{ CLASS_ABILITY : "in"
 
-    CHARACTER ||--o{ CHARACTER_TEMPLATE : "race/class"
-    TEMPLATE ||--o{ CHARACTER_TEMPLATE : "of"
-    TEMPLATE |o--o{ CHARACTER : "creature of a TC"
+    BEING ||--o{ CHARACTER : "is a (race / creature)"
+    CHARACTER ||--o{ CHARACTER_CLASS_LINK : "has class"
+    CHARACTER_CLASS ||--o{ CHARACTER_CLASS_LINK : "of"
     CHARACTER ||--o{ CHARACTER_ABILITY : "has"
     ABILITY ||--o{ CHARACTER_ABILITY : "in"
     CHARACTER ||--o{ CONDITION : "active"
@@ -170,8 +172,8 @@ erDiagram
     LOCATION |o--o{ SCENE : "takes place at"
     SCENE ||--o{ ENCOUNTER : "has"
     ENCOUNTER |o--o{ CHARACTER : "TCs"
-    SCENE ||--o{ SCENE_CREATURE_LOG : "creatures"
-    TEMPLATE ||--o{ SCENE_CREATURE_LOG : "creature"
+    SCENE ||--o{ SCENE_BEING_LOG : "beings met"
+    BEING ||--o{ SCENE_BEING_LOG : "being"
 
     CAMPAIGN {
         uuid id PK "schema public (catalog)"
@@ -199,15 +201,23 @@ erDiagram
         text name PK "e.g. success, height"
         uuid dice_throw_id FK
     }
-    TEMPLATE {
+    BEING {
         uuid id PK
-        text kind "race | class | creature"
-        text name
-        jsonb stat_modifiers "race/class: {dex: +2}"
-        jsonb base_stats "creature: starting stats"
+        text name "e.g. elf, human, wolf"
+        jsonb stat_modifiers "as race: {dex: +2}"
+        jsonb base_stats "as creature: starting stats for TCs"
     }
-    TEMPLATE_ABILITY {
-        uuid template_id PK,FK
+    BEING_ABILITY {
+        uuid being_id PK,FK
+        uuid ability_id PK,FK
+    }
+    CHARACTER_CLASS {
+        uuid id PK
+        text name "e.g. fighter"
+        jsonb stat_modifiers
+    }
+    CLASS_ABILITY {
+        uuid class_id PK,FK
         uuid ability_id PK,FK
     }
     CHARACTER {
@@ -215,19 +225,19 @@ erDiagram
         text kind "player | npc | tc"
         text name "NPC: unique"
         text handle "TC: e.g. wolf_01, unique per encounter"
-        uuid creature_id FK "TC only"
+        uuid being_id FK "race (player/NPC) or creature (TC)"
         uuid encounter_id FK "TC only"
         uuid location_id FK
         jsonb stats "{str: 14, luck: 3, hp: 20}"
     }
-    CHARACTER_TEMPLATE {
+    CHARACTER_CLASS_LINK {
         uuid character_id PK,FK
-        uuid template_id PK,FK
+        uuid class_id PK,FK
     }
     CHARACTER_ABILITY {
         uuid character_id PK,FK
         uuid ability_id PK,FK
-        text origin "race | class | acquired | creature"
+        text origin "being | class | acquired"
         int uses_left
     }
     CONDITION {
@@ -303,9 +313,9 @@ erDiagram
         bool active
         jsonb combat_snapshot "turn order, active character, used actions; null after end"
     }
-    SCENE_CREATURE_LOG {
+    SCENE_BEING_LOG {
         uuid scene_id PK,FK
-        uuid creature_id PK,FK
+        uuid being_id PK,FK
         text outcome PK "killed | fled | spared | tamed | promoted"
         int count
         text note
@@ -315,7 +325,6 @@ erDiagram
 Alle Tabellen außer `campaign` liegen im Schema der jeweiligen Kampagne; `campaign` liegt im Schema `public`.
 
 Annahmen (noch zu bestätigen):
-- Rasse, Klasse und Kreatur teilen eine Tabelle `template` (Spalte `kind`).
 - Werte einer Figur liegen als JSONB (`stats`); die Engine prüft die Namen gegen `stat_definition`.
 - `encounter` ist eigene Tabelle: Rahmen für TC-Kennungen (`unique(encounter_id, handle)`) und Kampf-Schnappschuss. TCs werden mit der Begegnung gelöscht, außer befördert.
 - NPC-Name eindeutig per partiellem Unique-Index (`unique(name) where kind = 'npc'`).
@@ -329,7 +338,7 @@ Annahmen (noch zu bestätigen):
 | Wurf (vorbereitet) | DiceThrow / PreparedDiceThrow |
 | Fähigkeit | Ability |
 | Folgen | Effects |
-| Vorlage (Rasse, Klasse, Kreatur) | Template (race, class, creature) |
+| Wesen (Rasse, Kreatur) / Klasse | Being / CharacterClass |
 | Figur | Character |
 | Spieler / NPC / TC | player / npc / tc (temporary character) |
 | Kennung (TC) | handle |
@@ -340,5 +349,5 @@ Annahmen (noch zu bestätigen):
 | Quest / Teilziel | Quest / sub-quest |
 | Szene / Zusammenfassung | Scene / summary |
 | Begegnung | Encounter |
-| Szenen-Protokoll / Ausgang | SceneCreatureLog / outcome |
+| Szenen-Protokoll / Ausgang | SceneBeingLog / outcome |
 | Kampf-Schnappschuss | combat_snapshot |
