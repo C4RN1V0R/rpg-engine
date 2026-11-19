@@ -7,7 +7,7 @@
 | Zweck | Generische Solo-Engine; Gates ist nur eine mögliche Kampagne |
 | Regeln | Eigenes System, D&D 5e und Gates dienen als Vorlage |
 | Modell | Austauschbar (Ollama, Claude, …) über eine Schnittstelle |
-| Oberfläche | Zuerst CLI, Web später |
+| Oberfläche | Nur CLI, keine Web-Oberfläche geplant |
 | Mechanik durch die Engine | Proben & Kampf · Charakter & Inventar · Welt & NPCs · Quests & Verlauf |
 | Funktionen | Hängen am Träger (Gegenstand mit Modi, Charakter mit Rassen-, Klassen- und erlangten Fähigkeiten) |
 | Umfang einer Fähigkeit | Benannte Würfelformeln plus feste Folgen (Zustände, Dauer, Ladungen, Nutzungen pro Rast) |
@@ -36,7 +36,7 @@ Charakter "X"
 |---|---|---|
 | Persistierung | Postgres | Fähigkeiten, Modi und Folgen als JSONB; lokal z. B. per Docker, Start über ein Skript |
 | Schnittstelle | REST-ähnlich, Ressourcen + Befehle | Zustände lesen per GET; Spielhandlungen als Befehle (`POST /sessions/{id}/turns`); die Engine rechnet immer selbst; Erzählung per Streaming (z. B. SSE) |
-| CLI-Anbindung | Von Anfang an über die API | Die Engine läuft als lokaler Server, das CLI ist ein echter Client; die Web-Oberfläche nutzt später dieselbe API |
+| CLI-Anbindung | Von Anfang an über die API | Die Engine läuft als lokaler Server, das CLI ist ein echter Client |
 | KI-Anbindung | Tool-Aufrufe des Modells, keine REST-Aufrufe | Die Tools binden an dieselbe Service-Schicht wie die API |
 
 ## 3. Würfelsystem
