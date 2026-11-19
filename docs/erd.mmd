@@ -1,192 +1,192 @@
 erDiagram
-    KAMPAGNE ||--o{ WERT_DEF : "definiert"
-    KAMPAGNE ||--o{ VORLAGE : "hat"
-    KAMPAGNE ||--o{ WURF : "hat"
-    KAMPAGNE ||--o{ FAEHIGKEIT : "hat"
-    KAMPAGNE ||--o{ GEGENSTAND_VORLAGE : "hat"
-    KAMPAGNE ||--o{ FIGUR : "hat"
-    KAMPAGNE ||--o{ ORT : "hat"
-    KAMPAGNE ||--o{ QUEST : "hat"
-    KAMPAGNE ||--o{ SZENE : "hat"
+    CAMPAIGN ||--o{ STAT_DEFINITION : "defines"
+    CAMPAIGN ||--o{ TEMPLATE : "has"
+    CAMPAIGN ||--o{ DICE_THROW : "has"
+    CAMPAIGN ||--o{ ABILITY : "has"
+    CAMPAIGN ||--o{ ITEM_TEMPLATE : "has"
+    CAMPAIGN ||--o{ CHARACTER : "has"
+    CAMPAIGN ||--o{ LOCATION : "has"
+    CAMPAIGN ||--o{ QUEST : "has"
+    CAMPAIGN ||--o{ SCENE : "has"
 
-    FAEHIGKEIT ||--o{ FAEHIGKEIT_WURF : "benannte Formeln"
-    WURF ||--o{ FAEHIGKEIT_WURF : "genutzt von"
-    WURF ||--o{ MODUS_WURF : "genutzt von"
+    ABILITY ||--o{ ABILITY_THROW : "named formulas"
+    DICE_THROW ||--o{ ABILITY_THROW : "used by"
+    DICE_THROW ||--o{ MODE_THROW : "used by"
 
-    VORLAGE ||--o{ VORLAGE_FAEHIGKEIT : "gibt"
-    FAEHIGKEIT ||--o{ VORLAGE_FAEHIGKEIT : "in"
+    TEMPLATE ||--o{ TEMPLATE_ABILITY : "grants"
+    ABILITY ||--o{ TEMPLATE_ABILITY : "in"
 
-    FIGUR ||--o{ FIGUR_VORLAGE : "Rasse/Klasse"
-    VORLAGE ||--o{ FIGUR_VORLAGE : "von"
-    VORLAGE |o--o{ FIGUR : "Kreatur eines TC"
-    FIGUR ||--o{ FIGUR_FAEHIGKEIT : "besitzt"
-    FAEHIGKEIT ||--o{ FIGUR_FAEHIGKEIT : "in"
-    FIGUR ||--o{ ZUSTAND : "aktiv"
-    ORT |o--o{ FIGUR : "befindet sich"
+    CHARACTER ||--o{ CHARACTER_TEMPLATE : "race/class"
+    TEMPLATE ||--o{ CHARACTER_TEMPLATE : "of"
+    TEMPLATE |o--o{ CHARACTER : "creature of a TC"
+    CHARACTER ||--o{ CHARACTER_ABILITY : "has"
+    ABILITY ||--o{ CHARACTER_ABILITY : "in"
+    CHARACTER ||--o{ CONDITION : "active"
+    LOCATION |o--o{ CHARACTER : "is at"
 
-    GEGENSTAND_VORLAGE ||--o{ MODUS : "Standard-Modi"
-    GEGENSTAND_VORLAGE ||--o{ GEGENSTAND_EXEMPLAR : "Exemplare"
-    GEGENSTAND_EXEMPLAR |o--o{ MODUS : "Zusatz-Modi"
-    MODUS ||--o{ MODUS_WURF : "Formeln"
-    GEGENSTAND_EXEMPLAR ||--o{ EXEMPLAR_FAEHIGKEIT : "Zusatz"
-    FAEHIGKEIT ||--o{ EXEMPLAR_FAEHIGKEIT : "in"
-    FIGUR |o--o{ GEGENSTAND_EXEMPLAR : "besitzt"
-    ORT |o--o{ GEGENSTAND_EXEMPLAR : "liegt in"
+    ITEM_TEMPLATE ||--o{ MODE : "default modes"
+    ITEM_TEMPLATE ||--o{ ITEM_INSTANCE : "instances"
+    ITEM_INSTANCE |o--o{ MODE : "extra modes"
+    MODE ||--o{ MODE_THROW : "formulas"
+    ITEM_INSTANCE ||--o{ ITEM_INSTANCE_ABILITY : "extra"
+    ABILITY ||--o{ ITEM_INSTANCE_ABILITY : "in"
+    CHARACTER |o--o{ ITEM_INSTANCE : "owns"
+    LOCATION |o--o{ ITEM_INSTANCE : "lies at"
 
-    ORT |o--o{ ORT : "enthält"
-    QUEST |o--o{ QUEST : "Teilziele"
-    FIGUR |o--o{ QUEST : "Auftraggeber"
-    QUEST ||--o{ QUEST_ORT : ""
-    ORT ||--o{ QUEST_ORT : ""
+    LOCATION |o--o{ LOCATION : "contains"
+    QUEST |o--o{ QUEST : "sub-quests"
+    CHARACTER |o--o{ QUEST : "quest giver"
+    QUEST ||--o{ QUEST_LOCATION : ""
+    LOCATION ||--o{ QUEST_LOCATION : ""
 
-    ORT |o--o{ SZENE : "spielt in"
-    SZENE ||--o{ BEGEGNUNG : "hat"
-    BEGEGNUNG |o--o{ FIGUR : "TCs"
-    SZENE ||--o{ SZENEN_PROTOKOLL : "Kreaturen"
-    VORLAGE ||--o{ SZENEN_PROTOKOLL : "Kreatur"
+    LOCATION |o--o{ SCENE : "takes place at"
+    SCENE ||--o{ ENCOUNTER : "has"
+    ENCOUNTER |o--o{ CHARACTER : "TCs"
+    SCENE ||--o{ SCENE_CREATURE_LOG : "creatures"
+    TEMPLATE ||--o{ SCENE_CREATURE_LOG : "creature"
 
-    KAMPAGNE {
+    CAMPAIGN {
         uuid id PK
         text name
     }
-    WERT_DEF {
+    STAT_DEFINITION {
         uuid id PK
-        uuid kampagne_id FK
-        text name "z. B. str, luck; unique je Kampagne"
-        text beschreibung
+        uuid campaign_id FK
+        text name "e.g. str, luck; unique per campaign"
+        text description
     }
-    WURF {
+    DICE_THROW {
         uuid id PK
-        uuid kampagne_id FK
-        text formel "z. B. 2d8 + str"
+        uuid campaign_id FK
+        text formula "e.g. 2d8 + str"
     }
-    FAEHIGKEIT {
+    ABILITY {
         uuid id PK
-        uuid kampagne_id FK
+        uuid campaign_id FK
         text name
-        text beschreibung
-        jsonb folgen "Zustände, Dauer, Ladungen, Nutzungen/Rast"
-        bool von_ki_angelegt
+        text description
+        jsonb effects "conditions, duration, charges, uses per rest"
+        bool created_by_ai
     }
-    FAEHIGKEIT_WURF {
-        uuid faehigkeit_id PK,FK
-        text name PK "z. B. erfolg, hoehe"
-        uuid wurf_id FK
+    ABILITY_THROW {
+        uuid ability_id PK,FK
+        text name PK "e.g. success, height"
+        uuid dice_throw_id FK
     }
-    VORLAGE {
+    TEMPLATE {
         uuid id PK
-        uuid kampagne_id FK
-        text art "rasse | klasse | kreatur"
+        uuid campaign_id FK
+        text kind "race | class | creature"
         text name
-        jsonb wertaenderungen "Rasse/Klasse: {dex: +2}"
-        jsonb grundwerte "Kreatur: Startwerte"
+        jsonb stat_modifiers "race/class: {dex: +2}"
+        jsonb base_stats "creature: starting stats"
     }
-    VORLAGE_FAEHIGKEIT {
-        uuid vorlage_id PK,FK
-        uuid faehigkeit_id PK,FK
+    TEMPLATE_ABILITY {
+        uuid template_id PK,FK
+        uuid ability_id PK,FK
     }
-    FIGUR {
+    CHARACTER {
         uuid id PK
-        uuid kampagne_id FK
-        text typ "spieler | npc | tc"
-        text name "NPC: unique je Kampagne"
-        text kennung "TC: z. B. wolf_01, unique je Begegnung"
-        uuid kreatur_id FK "nur TC"
-        uuid begegnung_id FK "nur TC"
-        uuid ort_id FK
-        jsonb werte "{str: 14, luck: 3, hp: 20}"
+        uuid campaign_id FK
+        text kind "player | npc | tc"
+        text name "NPC: unique per campaign"
+        text handle "TC: e.g. wolf_01, unique per encounter"
+        uuid creature_id FK "TC only"
+        uuid encounter_id FK "TC only"
+        uuid location_id FK
+        jsonb stats "{str: 14, luck: 3, hp: 20}"
     }
-    FIGUR_VORLAGE {
-        uuid figur_id PK,FK
-        uuid vorlage_id PK,FK
+    CHARACTER_TEMPLATE {
+        uuid character_id PK,FK
+        uuid template_id PK,FK
     }
-    FIGUR_FAEHIGKEIT {
-        uuid figur_id PK,FK
-        uuid faehigkeit_id PK,FK
-        text herkunft "rasse | klasse | erlangt | kreatur"
-        int nutzungen_uebrig
+    CHARACTER_ABILITY {
+        uuid character_id PK,FK
+        uuid ability_id PK,FK
+        text origin "race | class | acquired | creature"
+        int uses_left
     }
-    ZUSTAND {
+    CONDITION {
         uuid id PK
-        uuid figur_id FK
+        uuid character_id FK
         text name
-        text quelle_art "faehigkeit | gegenstand | figur"
-        uuid quelle_id
-        text dauer_art "runden | rast | dauerhaft"
-        int dauer_rest
-        jsonb wirkung "Wertänderungen, Vor-/Nachteil"
+        text source_kind "ability | item | character"
+        uuid source_id
+        text duration_kind "rounds | rest | permanent"
+        int duration_left
+        jsonb effect "stat modifiers, advantage/disadvantage"
     }
-    GEGENSTAND_VORLAGE {
+    ITEM_TEMPLATE {
         uuid id PK
-        uuid kampagne_id FK
+        uuid campaign_id FK
         text name
-        text beschreibung
+        text description
     }
-    GEGENSTAND_EXEMPLAR {
+    ITEM_INSTANCE {
         uuid id PK
-        uuid vorlage_id FK
-        uuid besitzer_id FK "Figur, optional"
-        uuid ort_id FK "optional"
-        text eigener_name
-        int anzahl
-        int ladungen
-        text zustand
+        uuid template_id FK
+        uuid owner_id FK "character, optional"
+        uuid location_id FK "optional"
+        text custom_name
+        int quantity
+        int charges
+        text item_condition
     }
-    MODUS {
+    MODE {
         uuid id PK
-        uuid gegenstand_vorlage_id FK "entweder"
-        uuid exemplar_id FK "oder"
-        text name "z. B. zweihändig"
+        uuid item_template_id FK "either"
+        uuid item_instance_id FK "or"
+        text name "e.g. two_handed"
     }
-    MODUS_WURF {
-        uuid modus_id PK,FK
+    MODE_THROW {
+        uuid mode_id PK,FK
         text name PK "to_hit, damage"
-        uuid wurf_id FK
+        uuid dice_throw_id FK
     }
-    EXEMPLAR_FAEHIGKEIT {
-        uuid exemplar_id PK,FK
-        uuid faehigkeit_id PK,FK
+    ITEM_INSTANCE_ABILITY {
+        uuid item_instance_id PK,FK
+        uuid ability_id PK,FK
     }
-    ORT {
+    LOCATION {
         uuid id PK
-        uuid kampagne_id FK
+        uuid campaign_id FK
         uuid parent_id FK
         text name
-        text beschreibung
-        text notizen
+        text description
+        text notes
     }
     QUEST {
         uuid id PK
-        uuid kampagne_id FK
+        uuid campaign_id FK
         uuid parent_id FK
-        text titel
-        text beschreibung
-        text status "offen | aktiv | erledigt | gescheitert"
-        uuid auftraggeber_id FK
-        jsonb belohnung
+        text title
+        text description
+        text status "open | active | done | failed"
+        uuid quest_giver_id FK
+        jsonb reward
     }
-    QUEST_ORT {
+    QUEST_LOCATION {
         uuid quest_id PK,FK
-        uuid ort_id PK,FK
+        uuid location_id PK,FK
     }
-    SZENE {
+    SCENE {
         uuid id PK
-        uuid kampagne_id FK
-        int nummer
-        uuid ort_id FK
-        text zusammenfassung "Pflicht beim Beenden"
-        timestamptz beendet_am
+        uuid campaign_id FK
+        int number
+        uuid location_id FK
+        text summary "required on end"
+        timestamptz ended_at
     }
-    BEGEGNUNG {
+    ENCOUNTER {
         uuid id PK
-        uuid szene_id FK
-        bool aktiv
-        jsonb kampf_schnappschuss "Reihenfolge, aktive Figur, Aktionen; nach Ende null"
+        uuid scene_id FK
+        bool active
+        jsonb combat_snapshot "turn order, active character, used actions; null after end"
     }
-    SZENEN_PROTOKOLL {
-        uuid szene_id PK,FK
-        uuid kreatur_id PK,FK
-        text ausgang PK "getötet | geflohen | verschont | gezähmt | befördert"
-        int anzahl
-        text notiz
+    SCENE_CREATURE_LOG {
+        uuid scene_id PK,FK
+        uuid creature_id PK,FK
+        text outcome PK "killed | fled | spared | tamed | promoted"
+        int count
+        text note
     }

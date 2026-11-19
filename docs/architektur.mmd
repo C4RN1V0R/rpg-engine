@@ -1,28 +1,28 @@
 flowchart TB
-    subgraph Clients["Clients (eigene Programme)"]
+    subgraph Clients["Clients (separate programs)"]
         CLI["CLI<br/>clap / rustyline"]
-        KI["Spielleiter-Client<br/>ruft Modell auf (Ollama, Claude …)<br/>Tool-Aufrufe → API-Aufrufe"]
-        Skript["Skripte / Tests"]
+        AI["Game master client<br/>calls the model (Ollama, Claude …)<br/>tool calls → API calls"]
+        Script["Scripts / tests"]
     end
 
-    subgraph Engine["Engine-Server (Rust, Tokio)"]
-        API["API-Schicht · Axum<br/>Routen, DTOs (serde), Validierung,<br/>Fehler → HTTP (z. B. 422), Warnungen"]
-        SVC["Service-Schicht<br/>Anwendungsfälle: Probe würfeln, Kampf starten,<br/>Zug ausführen, Szene beenden, TC befördern …"]
-        DOM["Domäne (reine Logik, kein I/O)<br/>Figur, Fähigkeit, Gegenstand, Zustand, Quest, Ort<br/>PreparedDiceThrow, Regeln"]
-        MEM["Laufzeit-Zustand (Speicher)<br/>aktive Kämpfe: Reihenfolge, aktive Figur,<br/>genutzte Aktionen"]
-        REPO["Repository-Traits<br/>FigurRepo, SzeneRepo, KampfRepo …"]
-        PG["sqlx-Umsetzung (Postgres)<br/>SQL beim Kompilieren geprüft, JSONB ↔ serde"]
+    subgraph Engine["Engine server (Rust, Tokio)"]
+        API["API layer · Axum<br/>routes, DTOs (serde), validation,<br/>errors → HTTP (e.g. 422), warnings"]
+        SVC["Service layer<br/>use cases: roll check, start combat,<br/>take turn, end scene, promote TC …"]
+        DOM["Domain (pure logic, no I/O)<br/>Character, Ability, Item, Condition, Quest, Location<br/>PreparedDiceThrow, rules"]
+        MEM["Runtime state (memory)<br/>active combats: turn order, active character,<br/>used actions"]
+        REPO["Repository traits<br/>CharacterRepo, SceneRepo, EncounterRepo …"]
+        PG["sqlx implementation (Postgres)<br/>SQL checked at compile time, JSONB ↔ serde"]
     end
 
-    DB[("PostgreSQL<br/>Tabellen + JSONB<br/>inkl. Kampf-Schnappschuss")]
+    DB[("PostgreSQL<br/>tables + JSONB<br/>incl. combat snapshot")]
 
     CLI -- "HTTP/JSON (reqwest)" --> API
-    KI -- "HTTP/JSON" --> API
-    Skript -- "HTTP/JSON" --> API
+    AI -- "HTTP/JSON" --> API
+    Script -- "HTTP/JSON" --> API
     API --> SVC
     SVC --> DOM
     SVC <--> MEM
     SVC --> REPO
-    REPO -. "implementiert durch" .-> PG
+    REPO -. "implemented by" .-> PG
     PG --> DB
-    MEM -. "Schnappschuss über KampfRepo" .-> REPO
+    MEM -. "snapshot via EncounterRepo" .-> REPO
