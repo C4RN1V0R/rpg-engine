@@ -55,3 +55,9 @@ throw = PreparedDiceThrow("2d8 + str")
 wurf  = throw.roll(context=charakter_X)   # z. B. [5, 6, str +3]
 wurf.sum()                                # 14
 ```
+
+## 4. Datenmodell
+
+| Punkt | Entscheidung |
+|---|---|
+| Charakterwerte | Frei definierbar pro Kampagne (Name + Zahl); Standardvorlage: STR, DEX, CON, INT, WIS, CHA, prof, Stufe/EP |
