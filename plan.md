@@ -125,3 +125,208 @@ flowchart TB
 ```
 
 Abhängigkeiten zeigen nur nach unten: Die Domäne kennt weder Axum noch sqlx; die Service-Schicht kennt nur die Repository-Traits.
+
+## 7. ERD
+
+Quelle: `docs/erd.mmd`
+
+```mermaid
+erDiagram
+    KAMPAGNE ||--o{ WERT_DEF : "definiert"
+    KAMPAGNE ||--o{ VORLAGE : "hat"
+    KAMPAGNE ||--o{ WURF : "hat"
+    KAMPAGNE ||--o{ FAEHIGKEIT : "hat"
+    KAMPAGNE ||--o{ GEGENSTAND_VORLAGE : "hat"
+    KAMPAGNE ||--o{ FIGUR : "hat"
+    KAMPAGNE ||--o{ ORT : "hat"
+    KAMPAGNE ||--o{ QUEST : "hat"
+    KAMPAGNE ||--o{ SZENE : "hat"
+
+    FAEHIGKEIT ||--o{ FAEHIGKEIT_WURF : "benannte Formeln"
+    WURF ||--o{ FAEHIGKEIT_WURF : "genutzt von"
+    WURF ||--o{ MODUS_WURF : "genutzt von"
+
+    VORLAGE ||--o{ VORLAGE_FAEHIGKEIT : "gibt"
+    FAEHIGKEIT ||--o{ VORLAGE_FAEHIGKEIT : "in"
+
+    FIGUR ||--o{ FIGUR_VORLAGE : "Rasse/Klasse"
+    VORLAGE ||--o{ FIGUR_VORLAGE : "von"
+    VORLAGE |o--o{ FIGUR : "Kreatur eines TC"
+    FIGUR ||--o{ FIGUR_FAEHIGKEIT : "besitzt"
+    FAEHIGKEIT ||--o{ FIGUR_FAEHIGKEIT : "in"
+    FIGUR ||--o{ ZUSTAND : "aktiv"
+    ORT |o--o{ FIGUR : "befindet sich"
+
+    GEGENSTAND_VORLAGE ||--o{ MODUS : "Standard-Modi"
+    GEGENSTAND_VORLAGE ||--o{ GEGENSTAND_EXEMPLAR : "Exemplare"
+    GEGENSTAND_EXEMPLAR |o--o{ MODUS : "Zusatz-Modi"
+    MODUS ||--o{ MODUS_WURF : "Formeln"
+    GEGENSTAND_EXEMPLAR ||--o{ EXEMPLAR_FAEHIGKEIT : "Zusatz"
+    FAEHIGKEIT ||--o{ EXEMPLAR_FAEHIGKEIT : "in"
+    FIGUR |o--o{ GEGENSTAND_EXEMPLAR : "besitzt"
+    ORT |o--o{ GEGENSTAND_EXEMPLAR : "liegt in"
+
+    ORT |o--o{ ORT : "enthält"
+    QUEST |o--o{ QUEST : "Teilziele"
+    FIGUR |o--o{ QUEST : "Auftraggeber"
+    QUEST ||--o{ QUEST_ORT : ""
+    ORT ||--o{ QUEST_ORT : ""
+
+    ORT |o--o{ SZENE : "spielt in"
+    SZENE ||--o{ BEGEGNUNG : "hat"
+    BEGEGNUNG |o--o{ FIGUR : "TCs"
+    SZENE ||--o{ SZENEN_PROTOKOLL : "Kreaturen"
+    VORLAGE ||--o{ SZENEN_PROTOKOLL : "Kreatur"
+
+    KAMPAGNE {
+        uuid id PK
+        text name
+    }
+    WERT_DEF {
+        uuid id PK
+        uuid kampagne_id FK
+        text name "z. B. str, luck; unique je Kampagne"
+        text beschreibung
+    }
+    WURF {
+        uuid id PK
+        uuid kampagne_id FK
+        text formel "z. B. 2d8 + str"
+    }
+    FAEHIGKEIT {
+        uuid id PK
+        uuid kampagne_id FK
+        text name
+        text beschreibung
+        jsonb folgen "Zustände, Dauer, Ladungen, Nutzungen/Rast"
+        bool von_ki_angelegt
+    }
+    FAEHIGKEIT_WURF {
+        uuid faehigkeit_id PK,FK
+        text name PK "z. B. erfolg, hoehe"
+        uuid wurf_id FK
+    }
+    VORLAGE {
+        uuid id PK
+        uuid kampagne_id FK
+        text art "rasse | klasse | kreatur"
+        text name
+        jsonb wertaenderungen "Rasse/Klasse: {dex: +2}"
+        jsonb grundwerte "Kreatur: Startwerte"
+    }
+    VORLAGE_FAEHIGKEIT {
+        uuid vorlage_id PK,FK
+        uuid faehigkeit_id PK,FK
+    }
+    FIGUR {
+        uuid id PK
+        uuid kampagne_id FK
+        text typ "spieler | npc | tc"
+        text name "NPC: unique je Kampagne"
+        text kennung "TC: z. B. wolf_01, unique je Begegnung"
+        uuid kreatur_id FK "nur TC"
+        uuid begegnung_id FK "nur TC"
+        uuid ort_id FK
+        jsonb werte "{str: 14, luck: 3, hp: 20}"
+    }
+    FIGUR_VORLAGE {
+        uuid figur_id PK,FK
+        uuid vorlage_id PK,FK
+    }
+    FIGUR_FAEHIGKEIT {
+        uuid figur_id PK,FK
+        uuid faehigkeit_id PK,FK
+        text herkunft "rasse | klasse | erlangt | kreatur"
+        int nutzungen_uebrig
+    }
+    ZUSTAND {
+        uuid id PK
+        uuid figur_id FK
+        text name
+        text quelle_art "faehigkeit | gegenstand | figur"
+        uuid quelle_id
+        text dauer_art "runden | rast | dauerhaft"
+        int dauer_rest
+        jsonb wirkung "Wertänderungen, Vor-/Nachteil"
+    }
+    GEGENSTAND_VORLAGE {
+        uuid id PK
+        uuid kampagne_id FK
+        text name
+        text beschreibung
+    }
+    GEGENSTAND_EXEMPLAR {
+        uuid id PK
+        uuid vorlage_id FK
+        uuid besitzer_id FK "Figur, optional"
+        uuid ort_id FK "optional"
+        text eigener_name
+        int anzahl
+        int ladungen
+        text zustand
+    }
+    MODUS {
+        uuid id PK
+        uuid gegenstand_vorlage_id FK "entweder"
+        uuid exemplar_id FK "oder"
+        text name "z. B. zweihändig"
+    }
+    MODUS_WURF {
+        uuid modus_id PK,FK
+        text name PK "to_hit, damage"
+        uuid wurf_id FK
+    }
+    EXEMPLAR_FAEHIGKEIT {
+        uuid exemplar_id PK,FK
+        uuid faehigkeit_id PK,FK
+    }
+    ORT {
+        uuid id PK
+        uuid kampagne_id FK
+        uuid parent_id FK
+        text name
+        text beschreibung
+        text notizen
+    }
+    QUEST {
+        uuid id PK
+        uuid kampagne_id FK
+        uuid parent_id FK
+        text titel
+        text beschreibung
+        text status "offen | aktiv | erledigt | gescheitert"
+        uuid auftraggeber_id FK
+        jsonb belohnung
+    }
+    QUEST_ORT {
+        uuid quest_id PK,FK
+        uuid ort_id PK,FK
+    }
+    SZENE {
+        uuid id PK
+        uuid kampagne_id FK
+        int nummer
+        uuid ort_id FK
+        text zusammenfassung "Pflicht beim Beenden"
+        timestamptz beendet_am
+    }
+    BEGEGNUNG {
+        uuid id PK
+        uuid szene_id FK
+        bool aktiv
+        jsonb kampf_schnappschuss "Reihenfolge, aktive Figur, Aktionen; nach Ende null"
+    }
+    SZENEN_PROTOKOLL {
+        uuid szene_id PK,FK
+        uuid kreatur_id PK,FK
+        text ausgang PK "getötet | geflohen | verschont | gezähmt | befördert"
+        int anzahl
+        text notiz
+    }
+```
+
+Annahmen (noch zu bestätigen):
+- Rasse, Klasse und Kreatur teilen eine Tabelle `VORLAGE` (Spalte `art`).
+- Werte einer Figur liegen als JSONB; die Engine prüft die Namen gegen `WERT_DEF`.
+- Begegnung ist eigene Tabelle: Rahmen für TC-Kennungen (`unique(begegnung_id, kennung)`) und Kampf-Schnappschuss. TCs werden mit der Begegnung gelöscht, außer befördert.
+- NPC-Name eindeutig per partiellem Unique-Index (`where typ = 'npc'`).
