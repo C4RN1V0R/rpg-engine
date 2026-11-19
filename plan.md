@@ -63,7 +63,7 @@ roll.sum()                                # 14
 |---|---|
 | Charakterwerte | Frei definierbar pro Kampagne (Name + Zahl); Standardvorlage: STR, DEX, CON, INT, WIS, CHA, prof, Stufe/EP |
 | Wertebindung | Die Engine kennt keine festen Werte; die Kampagne legt ihre Werte fest (z. B. ohne `dex`, mit `luck`). Formeln, Vorlagen und Charaktere sprechen Werte per Name an; Unbekanntes wird beim Anlegen abgelehnt |
-| Being & Klasse | `being` (Wesen: Elf, Mensch, Wolf …) mit Wertänderungen bzw. Grundwerten und Fähigkeiten; Spieler/NPC *haben* ein Being als Rasse, ein TC wird *aus* einem Being erzeugt. `character_class` (Krieger …) separat mit Wertänderungen und Fähigkeiten. Beides gehört zur Kampagne, die KI darf neue anlegen; die D&D-Vorlage ist ein Startpaket zum Übernehmen und Anpassen |
+| Being & Klasse | `being` (Wesen: Elf, Mensch, Wolf …) mit Grundwerten (`stats`) und Fähigkeiten; gespeichert werden immer nur Werte, Modifikatoren werden daraus berechnet; Spieler/NPC *haben* ein Being als Rasse, ein TC wird *aus* einem Being erzeugt. `character_class` (Krieger …) separat mit Wertänderungen und Fähigkeiten. Beides gehört zur Kampagne, die KI darf neue anlegen; die D&D-Vorlage ist ein Startpaket zum Übernehmen und Anpassen |
 | Gegenstände | Vorlage + Exemplar: Die Vorlage (z. B. „Langschwert“) trägt Modi und Würfe; das Exemplar gehört einem Charakter und hält eigene Daten (Anzahl, Ladungen, Zustand, eigener Name) |
 | Exemplar-Erweiterung | Ein Exemplar kann zusätzliche Fähigkeiten und Modi bekommen (z. B. Verzauberung `+1d6 Feuer`); die Vorlage bleibt unverändert |
 | Aktive Zustände | Eigene Einträge am Charakter: Name, Quelle (Fähigkeit/Gegenstand/Gegner), Dauer (Runden/Rast/dauerhaft), Wirkung (Wertänderungen, Vorteil/Nachteil); die Engine zählt herunter und entfernt Abgelaufenes |
@@ -204,8 +204,7 @@ erDiagram
     BEING {
         uuid id PK
         text name "e.g. elf, human, wolf"
-        jsonb stat_modifiers "as race: {dex: +2}"
-        jsonb base_stats "as creature: starting stats for TCs"
+        jsonb stats "base stats, e.g. {str: 12, dex: 15}; modifiers are derived"
     }
     BEING_ABILITY {
         uuid being_id PK,FK

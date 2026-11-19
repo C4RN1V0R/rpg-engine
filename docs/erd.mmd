@@ -67,8 +67,7 @@ erDiagram
     BEING {
         uuid id PK
         text name "e.g. elf, human, wolf"
-        jsonb stat_modifiers "as race: {dex: +2}"
-        jsonb base_stats "as creature: starting stats for TCs"
+        jsonb stats "base stats, e.g. {str: 12, dex: 15}; modifiers are derived"
     }
     BEING_ABILITY {
         uuid being_id PK,FK
