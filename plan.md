@@ -73,3 +73,4 @@ wurf.sum()                                # 14
 | Szenen-Protokoll | Die Szene speichert, wie viele von welcher Kreatur vorkamen und was mit ihnen geschah |
 | TC-Ausgang | Feste Ausgänge (getötet, geflohen, verschont, gezähmt, befördert) plus optionale Notiz; auswertbar (z. B. „12 Wölfe getötet“) |
 | Orte | Baumstruktur (z. B. Kontinent → Stadt → Taverne) mit Beschreibung und Notizen; NPCs und Gegenstände können einem Ort zugeordnet sein; die KI darf neue Orte anlegen |
+| Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), optional Verknüpfungen zu Auftraggeber-NPC, Orten, Belohnungen; die KI darf Quests anlegen und den Status ändern |
