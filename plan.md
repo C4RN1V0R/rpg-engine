@@ -90,3 +90,38 @@ wurf.sum()                                # 14
 | DB-Anbindung | sqlx (Postgres) | SQL selbst geschrieben, beim Kompilieren gegen das Schema geprüft; JSONB per serde; Migrationen eingebaut |
 | DB-Abstraktion | Repository-Traits (z. B. `FigurRepo`, `SzeneRepo`) | Die Engine kennt nur die Traits; zuerst Postgres-Umsetzung, weitere DBs (SQLite, MongoDB …) später ohne Engine-Änderung |
 | API-Framework | Axum (auf Tokio) | Verbreitet, schlank, typsichere Extraktoren, passt zu sqlx und serde |
+
+## 6. Architektur
+
+```mermaid
+flowchart TB
+    subgraph Clients["Clients (eigene Programme)"]
+        CLI["CLI<br/>clap / rustyline"]
+        KI["Spielleiter-Client<br/>ruft Modell auf (Ollama, Claude …)<br/>Tool-Aufrufe → API-Aufrufe"]
+        Skript["Skripte / Tests"]
+    end
+
+    subgraph Engine["Engine-Server (Rust, Tokio)"]
+        API["API-Schicht · Axum<br/>Routen, DTOs (serde), Validierung,<br/>Fehler → HTTP (z. B. 422), Warnungen"]
+        SVC["Service-Schicht<br/>Anwendungsfälle: Probe würfeln, Kampf starten,<br/>Zug ausführen, Szene beenden, TC befördern …"]
+        DOM["Domäne (reine Logik, kein I/O)<br/>Figur, Fähigkeit, Gegenstand, Zustand, Quest, Ort<br/>PreparedDiceThrow, Regeln"]
+        MEM["Laufzeit-Zustand (Speicher)<br/>aktive Kämpfe: Reihenfolge, aktive Figur,<br/>genutzte Aktionen"]
+        REPO["Repository-Traits<br/>FigurRepo, SzeneRepo, KampfRepo …"]
+        PG["sqlx-Umsetzung (Postgres)<br/>SQL beim Kompilieren geprüft, JSONB ↔ serde"]
+    end
+
+    DB[("PostgreSQL<br/>Tabellen + JSONB<br/>inkl. Kampf-Schnappschuss")]
+
+    CLI -- "HTTP/JSON (reqwest)" --> API
+    KI -- "HTTP/JSON" --> API
+    Skript -- "HTTP/JSON" --> API
+    API --> SVC
+    SVC --> DOM
+    SVC <--> MEM
+    SVC --> REPO
+    REPO -. "implementiert durch" .-> PG
+    PG --> DB
+    MEM -. "Schnappschuss über KampfRepo" .-> REPO
+```
+
+Abhängigkeiten zeigen nur nach unten: Die Domäne kennt weder Axum noch sqlx; die Service-Schicht kennt nur die Repository-Traits.
