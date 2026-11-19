@@ -81,3 +81,9 @@ wurf.sum()                                # 14
 | Aktionsökonomie | Die Engine merkt sich pro Figur und Runde, was genutzt wurde (Bewegung, Aktion, Bonusaktion, Reaktion …) |
 | Kampf-Schnappschuss | Laufender Kampf (Reihenfolge, aktive Figur, genutzte Aktionen) wird als temporärer Schnappschuss gespeichert, nach Kampfende gelöscht; erlaubt Fortsetzen nach Server-Neustart |
 | Szenenende | Die KI beendet eine Szene per API-Aufruf, wenn die Erzählung es nahelegt (Ortswechsel, Zeitsprung …); der Spieler sagt es der KI oder ruft selbst auf. Die Zusammenfassung ist Pflichtparameter: fehlt sie, lehnt die Engine ab (z. B. 422 mit Hinweis); ein leerer String wird akzeptiert, die Antwort enthält aber eine Warnung „Zusammenfassung leer“ |
+
+## 5. Sprache & Werkzeuge
+
+| Punkt | Entscheidung | Begründung |
+|---|---|---|
+| Sprache | Rust | Prioritäten: Typzwang, klare Strukturen, Clean-Code-Zwang, Performance/Speicher, wenig Overhead. Komposition + Traits + Enums statt Vererbung passen zum Datenmodell (Figur mit Typ, Vorlage + Exemplar) |
