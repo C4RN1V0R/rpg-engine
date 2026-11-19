@@ -76,7 +76,7 @@ roll.sum()                                # 14
 | Szenen-Protokoll | Die Szene speichert, wie viele von welchem Being vorkamen und was mit ihnen geschah |
 | TC-Ausgang | Feste Ausgänge (getötet, geflohen, verschont, gezähmt, befördert) plus optionale Notiz; auswertbar (z. B. „12 Wölfe getötet“) |
 | Orte | Baumstruktur (z. B. Kontinent → Stadt → Taverne) mit Beschreibung und Notizen; NPCs und Gegenstände können einem Ort zugeordnet sein; die KI darf neue Orte anlegen |
-| Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), zwingend einen Auftraggeber (beliebige Figur, auch der Spieler selbst), optional Verknüpfungen zu Orten und Belohnungen; die KI darf Quests anlegen und den Status ändern |
+| Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), zwingend einen Auftraggeber (beliebige Figur, auch der Spieler selbst), optional genau einen Ort (0..1) und Belohnungen; die KI darf Quests anlegen und den Status ändern |
 | Quest-Status | Wird manuell bzw. von der KI gesetzt, nicht automatisch aus Teilzielen abgeleitet; die Engine meldet nur Hinweise (z. B. „Alle Teilziele erledigt“) – so bleiben optionale Teilziele und alternative Wege möglich |
 | Verlauf | Kampagne → Szene; dauerhaft gespeichert werden pro Szene nur Zusammenfassung und Szenen-Protokoll |
 | Züge | Die Engine verwaltet Züge im Speicher, persistiert sie aber nicht |
@@ -133,6 +133,8 @@ flowchart TB
 Abhängigkeiten zeigen nur nach unten: Die Domäne kennt weder Axum noch sqlx; die Service-Schicht kennt nur die Repository-Traits.
 
 ## 7. ERD
+
+> **Konzeptionelles Klassendiagramm:** `docs/Class_diagramm.drawio` (vom Nutzer überarbeitet) ist das maßgebliche Modell und bleibt konzeptionell (m:n direkt, ohne Zuordnungstabellen). Kernpunkte: `being_template` (Art: Elf, Wolf) → `being` (konkreter Körper mit Werten, Fähigkeiten, Zuständen; ein TC ist ein reines Being) → `character` **ist ein** `being` (Spieler/NPC, benannt). `class` → `class_level` gibt Fähigkeiten; `ability_type`; Gegenstände geben Fähigkeiten. Das ERD unten ist der ältere Stand.
 
 Quelle: `docs/erd.mmd`
 
