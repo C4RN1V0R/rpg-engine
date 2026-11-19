@@ -64,3 +64,4 @@ wurf.sum()                                # 14
 | Wertebindung | Die Engine kennt keine festen Werte; die Kampagne legt ihre Werte fest (z. B. ohne `dex`, mit `luck`). Formeln, Vorlagen und Charaktere sprechen Werte per Name an; Unbekanntes wird beim Anlegen abgelehnt |
 | Rassen & Klassen | Vorlagen in der DB (Name, Fähigkeiten, Wertänderungen als JSONB `{"dex": +2}`), gehören zu einer Kampagne; der Charakter verweist darauf; die KI darf neue anlegen. Die D&D-Vorlage ist ein Startpaket zum Übernehmen und Anpassen |
 | Gegenstände | Vorlage + Exemplar: Die Vorlage (z. B. „Langschwert“) trägt Modi und Würfe; das Exemplar gehört einem Charakter und hält eigene Daten (Anzahl, Ladungen, Zustand, eigener Name) |
+| Exemplar-Erweiterung | Ein Exemplar kann zusätzliche Fähigkeiten und Modi bekommen (z. B. Verzauberung `+1d6 Feuer`); die Vorlage bleibt unverändert |
