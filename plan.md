@@ -63,9 +63,9 @@ roll.sum()                                # 14
 | Punkt | Entscheidung |
 |---|---|
 | Charakterwerte | Frei definierbar pro Kampagne (Name + Zahl); Standardvorlage: STR, DEX, CON, INT, WIS, CHA, prof, Stufe/EP |
-| Wertebindung | Die Engine kennt keine festen Werte; die Kampagne legt ihre Werte fest (z. B. ohne `dex`, mit `luck`). Formeln, Vorlagen und Charaktere sprechen Werte per Name an; Unbekanntes wird beim Anlegen abgelehnt |
+| Wertebindung | Die Engine kennt keine festen Werte; die Kampagne legt ihre Werte fest (z. B. ohne `dex`, mit `luck`). Formeln sprechen Werte per Name an; Being und Figur haben ihre Werte als Many-to-many zu `stat_definition` (`being_stat`, `character_stat`) – die DB erzwingt so, dass nur bekannte Werte existieren |
 | Modifikator | Wird nie gespeichert, sondern engine-weit für alle Werte berechnet: `floor((value - 10) / 2)` |
-| Being & Klasse | `being` (Wesen: Elf, Mensch, Wolf …) mit Grundwerten (`stats`) und Fähigkeiten; gespeichert werden immer nur Werte, Modifikatoren werden daraus berechnet; Spieler/NPC *haben* ein Being als Rasse, ein TC wird *aus* einem Being erzeugt. `character_class` (Krieger …) separat, gibt nur Fähigkeiten (keine Wertänderungen; Steigerungen landen direkt in den `stats` der Figur). Beides gehört zur Kampagne, die KI darf neue anlegen; die D&D-Vorlage ist ein Startpaket zum Übernehmen und Anpassen |
+| Being & Klasse | `being` (Wesen: Elf, Mensch, Wolf …) mit Grundwerten (`being_stat`) und Fähigkeiten; gespeichert werden immer nur Werte, Modifikatoren werden daraus berechnet; Spieler/NPC *haben* ein Being als Rasse, ein TC wird *aus* einem Being erzeugt. `character_class` (Krieger …) separat, gibt nur Fähigkeiten (keine Wertänderungen; Steigerungen landen direkt in `character_stat`). Beides gehört zur Kampagne, die KI darf neue anlegen; die D&D-Vorlage ist ein Startpaket zum Übernehmen und Anpassen |
 | Gegenstände | Vorlage + Exemplar: Die Vorlage (z. B. „Langschwert“) trägt Modi und Würfe; das Exemplar gehört einem Charakter und hält eigene Daten (Anzahl, Ladungen, Zustand, eigener Name) |
 | Exemplar-Erweiterung | Ein Exemplar kann zusätzliche Fähigkeiten und Modi bekommen (z. B. Verzauberung `+1d6 Feuer`); die Vorlage bleibt unverändert |
 | Aktive Zustände | Eigene Einträge am Charakter: Name, Quelle (Fähigkeit/Gegenstand/Gegner), Dauer (Runden/Rast/dauerhaft), Wirkung (Wertänderungen, Vorteil/Nachteil); die Engine zählt herunter und entfernt Abgelaufenes |
@@ -143,6 +143,10 @@ erDiagram
     DICE_THROW ||--o{ ABILITY_THROW : "used by"
     DICE_THROW ||--o{ MODE_THROW : "used by"
 
+    BEING ||--o{ BEING_STAT : "base stats"
+    STAT_DEFINITION ||--o{ BEING_STAT : "of"
+    CHARACTER ||--o{ CHARACTER_STAT : "stats"
+    STAT_DEFINITION ||--o{ CHARACTER_STAT : "of"
     BEING ||--o{ BEING_ABILITY : "grants"
     ABILITY ||--o{ BEING_ABILITY : "in"
     CHARACTER_CLASS ||--o{ CLASS_ABILITY : "grants"
@@ -184,7 +188,7 @@ erDiagram
     }
     STAT_DEFINITION {
         uuid id PK
-        text name "e.g. str, luck; unique"
+        text name "e.g. str, luck, hp; unique"
         text description
     }
     DICE_THROW {
@@ -205,7 +209,16 @@ erDiagram
     BEING {
         uuid id PK
         text name "e.g. elf, human, wolf"
-        jsonb stats "base stats, e.g. {str: 12, dex: 15}; modifiers are derived"
+    }
+    BEING_STAT {
+        uuid being_id PK,FK
+        uuid stat_id PK,FK
+        int value "modifier is derived"
+    }
+    CHARACTER_STAT {
+        uuid character_id PK,FK
+        uuid stat_id PK,FK
+        int value "modifier is derived"
     }
     BEING_ABILITY {
         uuid being_id PK,FK
@@ -227,7 +240,6 @@ erDiagram
         uuid being_id FK "race (player/NPC) or creature (TC)"
         uuid encounter_id FK "TC only"
         uuid location_id FK
-        jsonb stats "{str: 14, luck: 3, hp: 20}"
     }
     CHARACTER_CLASS_LINK {
         uuid character_id PK,FK
@@ -324,7 +336,6 @@ erDiagram
 Alle Tabellen außer `campaign` liegen im Schema der jeweiligen Kampagne; `campaign` liegt im Schema `public`.
 
 Annahmen (noch zu bestätigen):
-- Werte einer Figur liegen als JSONB (`stats`); die Engine prüft die Namen gegen `stat_definition`.
 - `encounter` ist eigene Tabelle: Rahmen für TC-Kennungen (`unique(encounter_id, handle)`) und Kampf-Schnappschuss. TCs werden mit der Begegnung gelöscht, außer befördert.
 - NPC-Name eindeutig per partiellem Unique-Index (`unique(name) where kind = 'npc'`).
 

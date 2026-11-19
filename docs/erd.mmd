@@ -4,6 +4,10 @@ erDiagram
     DICE_THROW ||--o{ ABILITY_THROW : "used by"
     DICE_THROW ||--o{ MODE_THROW : "used by"
 
+    BEING ||--o{ BEING_STAT : "base stats"
+    STAT_DEFINITION ||--o{ BEING_STAT : "of"
+    CHARACTER ||--o{ CHARACTER_STAT : "stats"
+    STAT_DEFINITION ||--o{ CHARACTER_STAT : "of"
     BEING ||--o{ BEING_ABILITY : "grants"
     ABILITY ||--o{ BEING_ABILITY : "in"
     CHARACTER_CLASS ||--o{ CLASS_ABILITY : "grants"
@@ -45,7 +49,7 @@ erDiagram
     }
     STAT_DEFINITION {
         uuid id PK
-        text name "e.g. str, luck; unique"
+        text name "e.g. str, luck, hp; unique"
         text description
     }
     DICE_THROW {
@@ -66,7 +70,16 @@ erDiagram
     BEING {
         uuid id PK
         text name "e.g. elf, human, wolf"
-        jsonb stats "base stats, e.g. {str: 12, dex: 15}; modifiers are derived"
+    }
+    BEING_STAT {
+        uuid being_id PK,FK
+        uuid stat_id PK,FK
+        int value "modifier is derived"
+    }
+    CHARACTER_STAT {
+        uuid character_id PK,FK
+        uuid stat_id PK,FK
+        int value "modifier is derived"
     }
     BEING_ABILITY {
         uuid being_id PK,FK
@@ -88,7 +101,6 @@ erDiagram
         uuid being_id FK "race (player/NPC) or creature (TC)"
         uuid encounter_id FK "TC only"
         uuid location_id FK
-        jsonb stats "{str: 14, luck: 3, hp: 20}"
     }
     CHARACTER_CLASS_LINK {
         uuid character_id PK,FK
