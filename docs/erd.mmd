@@ -35,7 +35,7 @@ erDiagram
 
     LOCATION |o--o{ LOCATION : "contains"
     QUEST |o--o{ QUEST : "sub-quests"
-    CHARACTER |o--o{ QUEST : "quest giver"
+    CHARACTER ||--o{ QUEST : "quest giver (required)"
     QUEST ||--o{ QUEST_LOCATION : ""
     LOCATION ||--o{ QUEST_LOCATION : ""
 
@@ -162,7 +162,7 @@ erDiagram
         text title
         text description
         text status "open | active | done | failed"
-        uuid quest_giver_id FK
+        uuid quest_giver_id FK "required"
         jsonb reward
     }
     QUEST_LOCATION {

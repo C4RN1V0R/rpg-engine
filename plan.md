@@ -73,7 +73,7 @@ roll.sum()                                # 14
 | Szenen-Protokoll | Die Szene speichert, wie viele von welcher Kreatur vorkamen und was mit ihnen geschah |
 | TC-Ausgang | Feste Ausgänge (getötet, geflohen, verschont, gezähmt, befördert) plus optionale Notiz; auswertbar (z. B. „12 Wölfe getötet“) |
 | Orte | Baumstruktur (z. B. Kontinent → Stadt → Taverne) mit Beschreibung und Notizen; NPCs und Gegenstände können einem Ort zugeordnet sein; die KI darf neue Orte anlegen |
-| Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), optional Verknüpfungen zu Auftraggeber-NPC, Orten, Belohnungen; die KI darf Quests anlegen und den Status ändern |
+| Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), zwingend einen Auftraggeber (Figur), optional Verknüpfungen zu Orten und Belohnungen; die KI darf Quests anlegen und den Status ändern |
 | Quest-Status | Wird manuell bzw. von der KI gesetzt, nicht automatisch aus Teilzielen abgeleitet; die Engine meldet nur Hinweise (z. B. „Alle Teilziele erledigt“) – so bleiben optionale Teilziele und alternative Wege möglich |
 | Verlauf | Kampagne → Szene; dauerhaft gespeichert werden pro Szene nur Zusammenfassung und Szenen-Protokoll |
 | Züge | Die Engine verwaltet Züge im Speicher, persistiert sie aber nicht |
@@ -171,7 +171,7 @@ erDiagram
 
     LOCATION |o--o{ LOCATION : "contains"
     QUEST |o--o{ QUEST : "sub-quests"
-    CHARACTER |o--o{ QUEST : "quest giver"
+    CHARACTER ||--o{ QUEST : "quest giver (required)"
     QUEST ||--o{ QUEST_LOCATION : ""
     LOCATION ||--o{ QUEST_LOCATION : ""
 
@@ -298,7 +298,7 @@ erDiagram
         text title
         text description
         text status "open | active | done | failed"
-        uuid quest_giver_id FK
+        uuid quest_giver_id FK "required"
         jsonb reward
     }
     QUEST_LOCATION {
