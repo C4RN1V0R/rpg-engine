@@ -1,8 +1,6 @@
 erDiagram
 
     ABILITY ||--o{ ABILITY_THROW : "named formulas"
-    DICE_THROW ||--o{ ABILITY_THROW : "used by"
-    DICE_THROW ||--o{ MODE_THROW : "used by"
 
     BEING ||--o{ BEING_STAT : "base stats"
     STAT_DEFINITION ||--o{ BEING_STAT : "of"
@@ -52,10 +50,6 @@ erDiagram
         text name "e.g. str, luck, hp; unique"
         text description
     }
-    DICE_THROW {
-        uuid id PK
-        text formula "e.g. 2d8 + str"
-    }
     ABILITY {
         uuid id PK
         text name
@@ -65,7 +59,7 @@ erDiagram
     ABILITY_THROW {
         uuid ability_id PK,FK
         text name PK "e.g. success, height"
-        uuid dice_throw_id FK
+        text formula "e.g. 1d8 + str; parsed into PreparedDiceThrow at runtime"
     }
     BEING {
         uuid id PK
@@ -146,7 +140,7 @@ erDiagram
     MODE_THROW {
         uuid mode_id PK,FK
         text name PK "to_hit, damage"
-        uuid dice_throw_id FK
+        text formula "e.g. 1d8 + str; parsed into PreparedDiceThrow at runtime"
     }
     ITEM_INSTANCE_ABILITY {
         uuid item_instance_id PK,FK

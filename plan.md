@@ -48,8 +48,7 @@ Charakter "X"
 | Variablen (str, dex, prof, …) | Erst beim Würfeln aufgelöst: `roll(context)` holt die Werte vom aktuellen Charakter |
 | Variablen-Bedeutung | `str` in einer Formel = Modifikator (`1d8 + str`); der rohe Wert über `str_value` |
 | Ergebnis von `roll()` | Ein Wurf-Objekt: Liste aus gewürfelten Werten und Modifikatoren, kennt `sum()` |
-| Referenz | PreparedDiceThrows sind eigene Einträge in der DB; Waffen-Modi und Fähigkeiten verweisen per ID darauf; mehrere Träger können sich einen Wurf teilen |
-| KI und Würfe | Die KI darf Würfe nur neu anlegen; Ändern bestehender Würfe ist vorerst nicht vorgesehen |
+| Speicherung | Ein Wurf hat keinen Zustand und ist keine eigene Entität: Fähigkeiten und Waffen-Modi speichern die Formel als Text (`ability_throw.formula`, `mode_throw.formula`); `PreparedDiceThrow` entsteht zur Laufzeit beim Laden |
 | Vorteil/Nachteil, Krit | Optionen bei `roll()`, z. B. `roll(context, advantage=True)`; das Wurf-Objekt vermerkt die Option |
 
 ```
@@ -140,8 +139,6 @@ Quelle: `docs/erd.mmd`
 erDiagram
 
     ABILITY ||--o{ ABILITY_THROW : "named formulas"
-    DICE_THROW ||--o{ ABILITY_THROW : "used by"
-    DICE_THROW ||--o{ MODE_THROW : "used by"
 
     BEING ||--o{ BEING_STAT : "base stats"
     STAT_DEFINITION ||--o{ BEING_STAT : "of"
@@ -191,10 +188,6 @@ erDiagram
         text name "e.g. str, luck, hp; unique"
         text description
     }
-    DICE_THROW {
-        uuid id PK
-        text formula "e.g. 2d8 + str"
-    }
     ABILITY {
         uuid id PK
         text name
@@ -204,7 +197,7 @@ erDiagram
     ABILITY_THROW {
         uuid ability_id PK,FK
         text name PK "e.g. success, height"
-        uuid dice_throw_id FK
+        text formula "e.g. 1d8 + str; parsed into PreparedDiceThrow at runtime"
     }
     BEING {
         uuid id PK
@@ -285,7 +278,7 @@ erDiagram
     MODE_THROW {
         uuid mode_id PK,FK
         text name PK "to_hit, damage"
-        uuid dice_throw_id FK
+        text formula "e.g. 1d8 + str; parsed into PreparedDiceThrow at runtime"
     }
     ITEM_INSTANCE_ABILITY {
         uuid item_instance_id PK,FK
@@ -345,7 +338,7 @@ Annahmen (noch zu bestätigen):
 |---|---|
 | Kampagne | Campaign |
 | Wert / Wertdefinition | Stat / StatDefinition |
-| Wurf (vorbereitet) | DiceThrow / PreparedDiceThrow |
+| Wurf (vorbereitet) | PreparedDiceThrow (nur Laufzeit) |
 | Fähigkeit | Ability |
 | Folgen | Effects |
 | Wesen (Rasse, Kreatur) / Klasse | Being / CharacterClass |
