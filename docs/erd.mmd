@@ -6,7 +6,6 @@ erDiagram
     CAMPAIGN ||--o{ ITEM_TEMPLATE : "has"
     CAMPAIGN ||--o{ CHARACTER : "has"
     CAMPAIGN ||--o{ LOCATION : "has"
-    CAMPAIGN ||--o{ QUEST : "has"
     CAMPAIGN ||--o{ SCENE : "has"
 
     ABILITY ||--o{ ABILITY_THROW : "named formulas"
@@ -157,7 +156,6 @@ erDiagram
     }
     QUEST {
         uuid id PK
-        uuid campaign_id FK
         uuid parent_id FK
         text title
         text description

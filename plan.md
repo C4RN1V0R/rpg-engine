@@ -73,7 +73,7 @@ roll.sum()                                # 14
 | Szenen-Protokoll | Die Szene speichert, wie viele von welcher Kreatur vorkamen und was mit ihnen geschah |
 | TC-Ausgang | Feste Ausgänge (getötet, geflohen, verschont, gezähmt, befördert) plus optionale Notiz; auswertbar (z. B. „12 Wölfe getötet“) |
 | Orte | Baumstruktur (z. B. Kontinent → Stadt → Taverne) mit Beschreibung und Notizen; NPCs und Gegenstände können einem Ort zugeordnet sein; die KI darf neue Orte anlegen |
-| Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), zwingend einen Auftraggeber (beliebige Figur, auch der Spieler selbst), optional Verknüpfungen zu Orten und Belohnungen; die KI darf Quests anlegen und den Status ändern |
+| Quests | Baumstruktur: Teilziele sind selbst Quests (gleicher Typ). Jede hat Titel, Beschreibung, Status (offen/aktiv/erledigt/gescheitert), zwingend einen Auftraggeber (beliebige Figur, auch der Spieler selbst) – darüber ist auch die Kampagne bestimmt (kein eigenes `campaign_id`), optional Verknüpfungen zu Orten und Belohnungen; die KI darf Quests anlegen und den Status ändern |
 | Quest-Status | Wird manuell bzw. von der KI gesetzt, nicht automatisch aus Teilzielen abgeleitet; die Engine meldet nur Hinweise (z. B. „Alle Teilziele erledigt“) – so bleiben optionale Teilziele und alternative Wege möglich |
 | Verlauf | Kampagne → Szene; dauerhaft gespeichert werden pro Szene nur Zusammenfassung und Szenen-Protokoll |
 | Züge | Die Engine verwaltet Züge im Speicher, persistiert sie aber nicht |
@@ -142,7 +142,6 @@ erDiagram
     CAMPAIGN ||--o{ ITEM_TEMPLATE : "has"
     CAMPAIGN ||--o{ CHARACTER : "has"
     CAMPAIGN ||--o{ LOCATION : "has"
-    CAMPAIGN ||--o{ QUEST : "has"
     CAMPAIGN ||--o{ SCENE : "has"
 
     ABILITY ||--o{ ABILITY_THROW : "named formulas"
@@ -293,7 +292,6 @@ erDiagram
     }
     QUEST {
         uuid id PK
-        uuid campaign_id FK
         uuid parent_id FK
         text title
         text description
