@@ -134,6 +134,8 @@ Abhängigkeiten zeigen nur nach unten: Die Domäne kennt weder Axum noch sqlx; d
 
 ## 7. ERD
 
+> **Konzeptionelles Klassendiagramm:** `docs/Class_diagramm.drawio` (vom Nutzer überarbeitet) ist das maßgebliche Modell und bleibt konzeptionell (m:n direkt, ohne Zuordnungstabellen). Kernpunkte: `being_template` (Art: Elf, Wolf) → `being` (konkreter Körper mit Werten, Fähigkeiten, Zuständen; ein TC ist ein reines Being) → `character` **ist ein** `being` (Spieler/NPC, benannt). `class` → `class_level` gibt Fähigkeiten; `ability_type`; Gegenstände geben Fähigkeiten. Das ERD unten ist der ältere Stand.
+
 Quelle: `docs/erd.mmd`
 
 ```mermaid
